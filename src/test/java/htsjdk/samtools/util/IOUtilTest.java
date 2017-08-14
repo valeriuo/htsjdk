@@ -39,10 +39,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-public class IoUtilTest extends HtsjdkTest {
+public class IOUtilTest extends HtsjdkTest {
 
     private static final File SLURP_TEST_FILE = new File("src/test/resources/htsjdk/samtools/io/slurptest.txt");
     private static final File EMPTY_FILE = new File("src/test/resources/htsjdk/samtools/io/empty.txt");
@@ -188,4 +189,20 @@ public class IoUtilTest extends HtsjdkTest {
                 {"/non/existent/file", Boolean.TRUE},
         };
     }
+
+
+    @DataProvider
+    public Object[][] getFiles(){
+        final File file = new File("someFile");
+        return new Object[][] {
+                {null, null},
+                {file, file.toPath()}
+        };
+    }
+
+    @Test(dataProvider = "getFiles")
+    public void testToPath(final File file, final Path expected){
+        Assert.assertEquals(IOUtil.toPath(file), expected);
+    }
+
 }

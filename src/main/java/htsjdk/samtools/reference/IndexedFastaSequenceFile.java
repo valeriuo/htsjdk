@@ -32,7 +32,6 @@ import htsjdk.samtools.util.IOUtil;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -69,7 +68,7 @@ public class IndexedFastaSequenceFile extends AbstractFastaSequenceFile implemen
      * @throws FileNotFoundException If the fasta or any of its supporting files cannot be found.
      */
     public IndexedFastaSequenceFile(final File file, final FastaSequenceIndex index) {
-        this(file == null ? null : file.toPath(), index);
+        this(IOUtil.toPath(file), index);
     }
 
     /**

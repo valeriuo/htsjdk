@@ -20,12 +20,11 @@ package htsjdk.samtools.cram.ref;
 import htsjdk.samtools.Defaults;
 import htsjdk.samtools.SAMException;
 import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SAMUtils;
-import htsjdk.samtools.cram.build.Utils;
 import htsjdk.samtools.cram.io.InputStreamUtils;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.reference.ReferenceSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
+import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.SequenceUtil;
 import htsjdk.samtools.util.StringUtil;
@@ -63,7 +62,7 @@ public class ReferenceSource implements CRAMReferenceSource {
     }
 
     public ReferenceSource(final File file) {
-        this(file == null ? null : file.toPath());
+        this(IOUtil.toPath(file));
     }
 
     public ReferenceSource(final Path path) {

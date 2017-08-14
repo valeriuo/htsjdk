@@ -31,7 +31,6 @@ import htsjdk.samtools.util.IOUtil;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,7 +55,7 @@ public class FastaSequenceIndex implements Iterable<FastaSequenceIndexEntry> {
      * @throws FileNotFoundException if the index file cannot be found.
      */
     public FastaSequenceIndex( File indexFile ) {
-        this(indexFile == null ? null : indexFile.toPath());
+        this(IOUtil.toPath(indexFile));
     }
 
     /**

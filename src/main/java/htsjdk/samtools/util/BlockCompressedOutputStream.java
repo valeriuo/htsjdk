@@ -283,7 +283,7 @@ public class BlockCompressedOutputStream
         codec.writeBytes(BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK);
         codec.close();
         // Can't re-open something that is not a regular file, e.g. a named pipe or an output stream
-        if (this.file == null || !this.file.isFile() || !Files.isRegularFile(this.file.toPath())) return;
+        if (this.file == null || !this.file.isFile() || !Files.isRegularFile(IOUtil.toPath(this.file))) return;
         if (BlockCompressedInputStream.checkTermination(this.file) !=
                 BlockCompressedInputStream.FileTermination.HAS_TERMINATOR_BLOCK) {
             throw new IOException("Terminator block not found after closing BGZF file " + this.file);

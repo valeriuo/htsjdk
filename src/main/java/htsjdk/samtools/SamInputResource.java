@@ -38,12 +38,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -255,7 +253,7 @@ class FileInputResource extends InputResource {
 
     @Override
     public Path asPath() {
-        return fileResource.toPath();
+        return IOUtil.toPath(fileResource);
     }
 
     @Override

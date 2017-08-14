@@ -69,7 +69,6 @@ import java.util.Stack;
 import java.util.regex.Pattern;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Miscellaneous stateless static IO-oriented methods.
@@ -331,7 +330,7 @@ public class IOUtil {
      * @param file the file to check for readability
      */
     public static void assertFileIsReadable(final File file) {
-        assertFileIsReadable(file == null ? null : file.toPath());
+        assertFileIsReadable(toPath(file));
     }
 
     /**
@@ -508,7 +507,7 @@ public class IOUtil {
      * @return the input stream to read from
      */
     public static InputStream openFileForReading(final File file) {
-        return openFileForReading(file.toPath());
+        return openFileForReading(toPath(file));
     }
 
     /**
@@ -541,7 +540,7 @@ public class IOUtil {
      * @return the input stream to read from
      */
     public static InputStream openGzipFileForReading(final File file) {
-        return openGzipFileForReading(file.toPath());
+        return openGzipFileForReading(toPath(file));
     }
 
     /**
@@ -781,7 +780,7 @@ public class IOUtil {
 
     /** Checks that a file exists and is readable, and then returns a buffered reader for it. */
     public static BufferedReader openFileForBufferedReading(final File file) {
-        return openFileForBufferedReading(file.toPath());
+        return openFileForBufferedReading(toPath(file));
 	}
 
     /** Checks that a path exists and is readable, and then returns a buffered reader for it. */
@@ -995,5 +994,13 @@ public class IOUtil {
             }
             return FileSystems.newFileSystem(uri, new HashMap<>(), cl).provider().getPath(uri);
         }
+    }
+
+    /*
+     * @param file
+     * @return if file == null return null otherwise return file.toPath()
+     */
+    public static Path toPath(File file) {
+        return file == null ? null : file.toPath();
     }
 }
