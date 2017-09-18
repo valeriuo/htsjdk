@@ -23,32 +23,22 @@
  */
 package htsjdk.samtools.util;
 
-import htsjdk.HtsjdkTest;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.nio.file.spi.FileSystemProvider;
+import htsjdk.HtsjdkTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
+import java.io.*;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
 public class IOUtilUnitTest extends HtsjdkTest {
-    
+
     private static final File SLURP_TEST_FILE = new File("src/test/resources/htsjdk/samtools/io/slurptest.txt");
     private static final File EMPTY_FILE = new File("src/test/resources/htsjdk/samtools/io/empty.txt");
     private static final File FIVE_SPACES_THEN_A_NEWLINE_THEN_FIVE_SPACES_FILE = new File("src/test/resources/htsjdk/samtools/io/5newline5.txt");
@@ -66,7 +56,9 @@ public class IOUtilUnitTest extends HtsjdkTest {
         existingTempFile.deleteOnExit();
         systemTempDir = System.getProperty("java.io.tmpdir");
         final File tmpDir = new File(systemTempDir);
-        if (!tmpDir.isDirectory()) tmpDir.mkdir();
+        if (!tmpDir.isDirectory()) {
+            Assert.assertTrue(tmpDir.mkdir());
+        }
         if (!tmpDir.isDirectory())
             throw new RuntimeException("java.io.tmpdir (" + systemTempDir + ") is not a directory");
     }
@@ -100,7 +92,7 @@ public class IOUtilUnitTest extends HtsjdkTest {
         }
 
         File tmpDir = new File(tmpPath, userName);
-        tmpDir.mkdir();
+        Assert.assertTrue(tmpDir.mkdir());
         File actual = new File(tmpDir, "actual.txt");
         ProcessExecutor.execute(new String[]{"touch", actual.getAbsolutePath()});
         File symlink = new File(tmpDir, "symlink.txt");
@@ -116,12 +108,12 @@ public class IOUtilUnitTest extends HtsjdkTest {
             Assert.assertEquals(IOUtil.getFullCanonicalPath(f), actual.getCanonicalPath());
         }
 
-        actual.delete();
-        symlink.delete();
-        lnToActual.delete();
-        lnToSymlink.delete();
-        lnDir.delete();
-        tmpDir.delete();
+        actual.deleteOnExit();
+        symlink.deleteOnExit();
+        lnToActual.deleteOnExit();
+        lnToSymlink.deleteOnExit();
+        lnDir.deleteOnExit();
+        tmpDir.deleteOnExit();
     }
 
     @Test
@@ -168,24 +160,19 @@ public class IOUtilUnitTest extends HtsjdkTest {
     public void testFileType(final String path, boolean expectedIsRegularFile) {
         final File file = new File(path);
         Assert.assertEquals(IOUtil.isRegularPath(file), expectedIsRegularFile);
-        if (null != file) {
-            Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
-        }
+        Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
     }
 
     @Test(dataProvider = "unixFileTypeTestCases", groups = {"unix"})
     public void testFileTypeUnix(final String path, boolean expectedIsRegularFile) {
         final File file = new File(path);
         Assert.assertEquals(IOUtil.isRegularPath(file), expectedIsRegularFile);
-        if (null != file) {
-            Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
-        }
+        Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
     }
 
     @Test
     public void testAddExtension() throws IOException {
         Path p = IOUtil.getPath("/folder/file");
-        List<FileSystemProvider> fileSystemProviders = FileSystemProvider.installedProviders();
         Assert.assertEquals(IOUtil.addExtension(p, ".ext"), IOUtil.getPath("/folder/file.ext"));
         p = IOUtil.getPath("folder/file");
         Assert.assertEquals(IOUtil.addExtension(p, ".ext"), IOUtil.getPath("folder/file.ext"));
