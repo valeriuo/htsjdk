@@ -45,7 +45,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class IoUtilTest extends HtsjdkTest {
 
@@ -215,5 +217,12 @@ public class IoUtilTest extends HtsjdkTest {
                 {"/dev/stdout", Boolean.FALSE},
                 {"/non/existent/file", Boolean.TRUE},
         };
+    }
+
+
+    @Test
+    public void testUnrollPaths(final String pathUri, final String[] extensions, final int expectedNumberOfUnrolledPaths) throws IOException {
+        Path p = IOUtil.getPath(pathUri);
+        IOUtil.unrollPaths( Collections.singleton(p), extensions);
     }
 }
