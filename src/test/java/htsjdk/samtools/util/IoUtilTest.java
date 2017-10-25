@@ -51,9 +51,11 @@ import java.util.Set;
 
 public class IoUtilTest extends HtsjdkTest {
 
-    private static final File SLURP_TEST_FILE = new File("src/test/resources/htsjdk/samtools/io/slurptest.txt");
-    private static final File EMPTY_FILE = new File("src/test/resources/htsjdk/samtools/io/empty.txt");
-    private static final File FIVE_SPACES_THEN_A_NEWLINE_THEN_FIVE_SPACES_FILE = new File("src/test/resources/htsjdk/samtools/io/5newline5.txt");
+
+    private static final File TEST_DATA_DIR = new File ("src/test/resources/htsjdk/samtools/io/");
+    private static final File SLURP_TEST_FILE = new File(TEST_DATA_DIR,"slurptest.txt");
+    private static final File EMPTY_FILE = new File(TEST_DATA_DIR,"empty.txt");
+    private static final File FIVE_SPACES_THEN_A_NEWLINE_THEN_FIVE_SPACES_FILE = new File(TEST_DATA_DIR,"5newline5.txt");
     private static final List<String> SLURP_TEST_LINES = Arrays.asList("bacon   and rice   ", "for breakfast  ", "wont you join me");
     private static final String SLURP_TEST_LINE_SEPARATOR = "\n";
     private static final String TEST_FILE_PREFIX = "htsjdk-IOUtilTest";
@@ -219,10 +221,23 @@ public class IoUtilTest extends HtsjdkTest {
         };
     }
 
+    @DataProvider
+    public Object[][] fofnData() {
+        return new Object[][]{
+                {TEST_DATA_DIR.getAbsolutePath() + "/Level1.fofn", new String[]{".vcf", ".vcf.gz"}, 2},
+                {TEST_DATA_DIR.getAbsolutePath() + "/Level2.fofn", new String[]{".vcf", ".vcf.gz"}, 4},
+                {"gs://htsjdk-testdata/htsjdk/samtools/io/Level1.fofn", new String[]{".vcf", ".vcf.gz"}, 2},
 
-    @Test
+                //it's a bit crazy that this works...we are pointing to a local file from the cloud...
+                {"gs://htsjdk-testdata/htsjdk/samtools/io/Level2.fofn", new String[]{".vcf", ".vcf.gz"}, 4}
+        };
+    }
+
+    @Test(dataProvider = "fofnData")
     public void testUnrollPaths(final String pathUri, final String[] extensions, final int expectedNumberOfUnrolledPaths) throws IOException {
         Path p = IOUtil.getPath(pathUri);
-        IOUtil.unrollPaths( Collections.singleton(p), extensions);
+        List<Path> paths = IOUtil.unrollPaths(Collections.singleton(p), extensions);
+
+        Assert.assertEquals(paths.size(), expectedNumberOfUnrolledPaths);
     }
 }
