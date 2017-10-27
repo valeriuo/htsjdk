@@ -656,16 +656,28 @@ public class BAMFileReader extends SamReader.ReaderImplementation {
 
         final byte[] buffer = new byte[4];
         stream.readBytes(buffer);
-        if (!Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC)) {
+        if (!Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC) || !Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC_V2)) {
             throw new IOException("Invalid BAM file header");
         }
 
+        final String magicNumber = new String(buffer);
+        long bam2HdrFlags = 0;
+        if (magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
+            bam2HdrFlags = stream.readUInt();
+
+            if (bam2HdrFlags != 0) {
+                throw new SAMFormatException("Invalid BAM2 header flags: " + bam2HdrFlags);
+            }
+        }
         final int headerTextLength = stream.readInt();
         final String textHeader = stream.readString(headerTextLength);
         final SAMTextHeaderCodec headerCodec = new SAMTextHeaderCodec();
         headerCodec.setValidationStringency(validationStringency);
         final SAMFileHeader samFileHeader = headerCodec.decode(BufferedLineReader.fromString(textHeader),
                 source);
+
+        samFileHeader.setMagicNumber(magicNumber);
+        samFileHeader.setBam2HdrFlags(bam2HdrFlags);
 
         final int sequenceCount = stream.readInt();
         if (!samFileHeader.getSequenceDictionary().isEmpty()) {

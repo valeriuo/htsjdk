@@ -53,4 +53,34 @@ public class DefaultSAMRecordFactory implements SAMRecordFactory {
                              insertSize,
                              variableLengthBlock);
     }
+
+    @Override
+    public BAM2Record createBAM2Record (final SAMFileHeader header,
+                                        final long bam2Flags,
+                                        final int referenceSequenceIndex,
+                                        final int alignmentStart,
+                                        final short readNameLength,
+                                        final short mappingQuality,
+                                        final int cigarLen,
+                                        final int flags,
+                                        final int readLen,
+                                        final int mateReferenceSequenceIndex,
+                                        final int mateAlignmentStart,
+                                        final int insertSize,
+                                        final byte[] variableLengthBlock) {
+
+        return new BAM2Record(header,
+                              bam2Flags,
+                              referenceSequenceIndex,
+                              alignmentStart,
+                              readNameLength,
+                              mappingQuality,
+                              cigarLen,
+                              flags,
+                              readLen,
+                              mateReferenceSequenceIndex,
+                              mateAlignmentStart,
+                              insertSize,
+                              variableLengthBlock);
+    }
 }

@@ -34,52 +34,18 @@ import java.util.Arrays;
 /**
  * Class for translating between in-memory and disk representation of BAMRecord.
  */
-public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
-    protected final SAMFileHeader header;
+public class BAM2RecordCodec extends BAMRecordCodec {
 
-    protected final BinaryCodec binaryCodec = new BinaryCodec();
-    protected final BinaryTagCodec binaryTagCodec = new BinaryTagCodec(binaryCodec);
-    protected final SAMRecordFactory samRecordFactory;
+    public BAM2RecordCodec(final SAMFileHeader header) {
 
-    public BAMRecordCodec(final SAMFileHeader header) {
         this(header, new DefaultSAMRecordFactory());
     }
 
-    public BAMRecordCodec(final SAMFileHeader header, final SAMRecordFactory factory) {
-        this.header = header;
-        this.samRecordFactory = factory;
+    public BAM2RecordCodec(final SAMFileHeader header, final SAMRecordFactory factory) {
+
+        super(header, factory);
     }
 
-    @Override
-    public BAMRecordCodec clone() {
-        // Do not clone the references to codecs, as they must be distinct for each instance.
-        return new BAMRecordCodec(this.header, this.samRecordFactory);
-    }
-
-
-    /** Sets the output stream that records will be written to. */
-    @Override
-    public void setOutputStream(final OutputStream os) {
-        this.binaryCodec.setOutputStream(os);
-    }
-
-    /** Sets the output stream that records will be written to. */
-    public void setOutputStream(final OutputStream os, final String filename) {
-        this.binaryCodec.setOutputStream(os);
-        this.binaryCodec.setOutputFileName(filename);
-    }
-
-    /** Sets the input stream that records will be read from. */
-    @Override
-    public void setInputStream(final InputStream is) {
-        this.binaryCodec.setInputStream(is);
-    }
-
-    /** Sets the input stream that records will be read from. */
-    public void setInputStream(final InputStream is, final String filename) {
-        this.binaryCodec.setInputStream(is);
-        this.binaryCodec.setInputFileName(filename);
-    }
 
     /**
      * Write object to OutputStream.
@@ -91,6 +57,10 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
      */
     @Override
     public void encode(final SAMRecord alignment) {
+        BAM2Record bam2Record = (BAM2Record) alignment;
+
+        final long bam2Flags = bam2Record.getBAM2Flags();
+
         // Compute block size, as it is the first element of the file representation of SAMRecord
         final int readLength = alignment.getReadLength();
 
@@ -113,15 +83,6 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
             }
         }
 
-        int indexBin = 0;
-        if (alignment.getReferenceIndex() >= 0) {
-            if (alignment.getIndexingBin() != null) {
-                indexBin = alignment.getIndexingBin();
-            } else {
-                indexBin = alignment.computeIndexingBin();
-            }
-        }
-
         // Blurt out the elements
         this.binaryCodec.writeInt(blockSize);
         this.binaryCodec.writeInt(alignment.getReferenceIndex());
@@ -129,10 +90,9 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         this.binaryCodec.writeInt(alignment.getAlignmentStart() - 1);
         this.binaryCodec.writeUByte((short)(alignment.getReadNameLength() + 1));
         this.binaryCodec.writeUByte((short)alignment.getMappingQuality());
-        this.binaryCodec.writeUShort(indexBin);
-        this.binaryCodec.writeUShort(cigarLength);
+        this.binaryCodec.writeUInt(cigarLength);
         this.binaryCodec.writeUShort(alignment.getFlags());
-        this.binaryCodec.writeInt(alignment.getReadLength());
+        this.binaryCodec.writeInt(readLength);
         this.binaryCodec.writeInt(alignment.getMateReferenceIndex());
         this.binaryCodec.writeInt(alignment.getMateAlignmentStart() - 1);
         this.binaryCodec.writeInt(alignment.getInferredInsertSize());
@@ -176,14 +136,26 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
     }
 
     /**
-     * Read the next record from the input stream and convert into a java object.
-     *
+     * Read the next BAM2 record from the input stream and convert into a java object.
+     * Read the cigar
      * @return null if no more records.  Should throw exception if EOF is encountered in the middle of
      *         a record.
      */
     @Override
     public SAMRecord decode() {
-        int recordLength = 0;
+        long bam2Flags;
+        try {
+            bam2Flags = this.binaryCodec.readUInt();
+        }
+        catch (RuntimeEOFException e) {
+            return null;
+        }
+
+        if (bam2Flags != 0) {
+            throw new SAMFormatException("Invalid BAM2 flags: " + bam2Flags);
+        }
+
+        int recordLength;
         try {
             recordLength = this.binaryCodec.readInt();
         }
@@ -199,8 +171,7 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         final int coordinate = this.binaryCodec.readInt() + 1;
         final short readNameLength = this.binaryCodec.readUByte();
         final short mappingQuality = this.binaryCodec.readUByte();
-        final int bin = this.binaryCodec.readUShort();
-        final int cigarLen = this.binaryCodec.readUShort();
+        final int cigarLen = Math.toIntExact(this.binaryCodec.readUInt());
         final int flags = this.binaryCodec.readUShort();
         final int readLen = this.binaryCodec.readInt();
         final int mateReferenceID = this.binaryCodec.readInt();
@@ -208,9 +179,9 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         final int insertSize = this.binaryCodec.readInt();
         final byte[] restOfRecord = new byte[recordLength - BAMFileConstants.FIXED_BLOCK_SIZE];
         this.binaryCodec.readBytes(restOfRecord);
-        final BAMRecord ret = this.samRecordFactory.createBAMRecord(
-                header, referenceID, coordinate, readNameLength, mappingQuality,
-                bin, cigarLen, flags, readLen, mateReferenceID, mateCoordinate, insertSize, restOfRecord);
+        final BAM2Record ret = this.samRecordFactory.createBAM2Record(
+                header, bam2Flags, referenceID, coordinate, readNameLength, mappingQuality,
+                cigarLen, flags, readLen, mateReferenceID, mateCoordinate, insertSize, restOfRecord);
 
         if (null != header) {
             // don't reset a null header as this will clobber the reference and mate reference indices

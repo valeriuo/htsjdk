@@ -38,6 +38,7 @@ class BAMFileConstants {
      */
 
     static final byte[] BAM_MAGIC = "BAM\1".getBytes();
+    static final byte[] BAM_MAGIC_V2 = "BAM\2".getBytes();
     /**
      * BAM index file magic number.
      */

@@ -120,6 +120,9 @@ public class SAMFileHeader extends AbstractSAMHeaderRecord
     private String textHeader;
     private final List<SAMValidationError> mValidationErrors = new ArrayList<>();
 
+    private String magicNumber;
+    private long bam2HdrFlags;
+
     public SAMFileHeader() {
         setAttribute(VERSION_TAG, CURRENT_VERSION);
     }
@@ -462,5 +465,21 @@ public class SAMFileHeader extends AbstractSAMHeaderRecord
                 return newId;
             }
         }
+    }
+
+    public String getMagicNumber() {
+        return magicNumber;
+    }
+
+    public void setMagicNumber(String magicNumber) {
+        this.magicNumber = magicNumber;
+    }
+
+    public long getBam2HdrFlags() {
+        return bam2HdrFlags;
+    }
+
+    public void setBam2HdrFlags(long bam2HdrFlags) {
+        this.bam2HdrFlags = bam2HdrFlags;
     }
 }
