@@ -120,7 +120,7 @@ public class SAMFileHeader extends AbstractSAMHeaderRecord
     private String textHeader;
     private final List<SAMValidationError> mValidationErrors = new ArrayList<>();
 
-    private String magicNumber;
+    private byte[] magicNumber;
     private long bam2HdrFlags;
 
     public SAMFileHeader() {
@@ -467,11 +467,11 @@ public class SAMFileHeader extends AbstractSAMHeaderRecord
         }
     }
 
-    public String getMagicNumber() {
+    public byte[] getMagicNumber() {
         return magicNumber;
     }
 
-    public void setMagicNumber(String magicNumber) {
+    public void setMagicNumber(byte[] magicNumber) {
         this.magicNumber = magicNumber;
     }
 

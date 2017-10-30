@@ -173,7 +173,14 @@ class BAMFileWriter extends SAMFileWriterImpl {
      * some instances we already have both so this allows us to save some cycles
      */
     protected static void writeHeader(final BinaryCodec outputBinaryCodec, final SAMFileHeader samFileHeader, final String headerText) {
-        outputBinaryCodec.writeBytes(BAMFileConstants.BAM_MAGIC);
+
+        final byte[] magicNumber = samFileHeader.getMagicNumber();
+        if (magicNumber != null && magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
+            outputBinaryCodec.writeBytes(magicNumber);
+            outputBinaryCodec.writeUInt(samFileHeader.getBam2HdrFlags());
+        } else {
+            outputBinaryCodec.writeBytes(BAMFileConstants.BAM_MAGIC);
+        }
 
         // calculate and write the length of the SAM file header text and the header text
         outputBinaryCodec.writeString(headerText, true, false);

@@ -2450,4 +2450,8 @@ public class SAMRecord implements Cloneable, Locatable, Serializable {
             array[j] = tmp;
         }
     }
+
+    public long getBAM2Flags() {
+        return 0;
+    }
 }

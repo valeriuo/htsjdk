@@ -660,9 +660,8 @@ public class BAMFileReader extends SamReader.ReaderImplementation {
             throw new IOException("Invalid BAM file header");
         }
 
-        final String magicNumber = new String(buffer);
         long bam2HdrFlags = 0;
-        if (magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
+        if (buffer.equals(BAMFileConstants.BAM_MAGIC_V2)) {
             bam2HdrFlags = stream.readUInt();
 
             if (bam2HdrFlags != 0) {
@@ -676,7 +675,7 @@ public class BAMFileReader extends SamReader.ReaderImplementation {
         final SAMFileHeader samFileHeader = headerCodec.decode(BufferedLineReader.fromString(textHeader),
                 source);
 
-        samFileHeader.setMagicNumber(magicNumber);
+        samFileHeader.setMagicNumber(buffer);
         samFileHeader.setBam2HdrFlags(bam2HdrFlags);
 
         final int sequenceCount = stream.readInt();

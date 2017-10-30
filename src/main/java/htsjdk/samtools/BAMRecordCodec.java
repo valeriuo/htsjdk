@@ -91,8 +91,8 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
      */
     @Override
     public void encode(final SAMRecord alignment) {
-        final BAMRecord bamRecord = (BAMRecord)alignment;
         final SAMFileHeader samFileHeader = alignment.getHeader();
+        final byte[] magicNumber = samFileHeader.getMagicNumber();
 
         // Compute block size, as it is the first element of the file representation of SAMRecord
         final int readLength = alignment.getReadLength();
@@ -126,8 +126,8 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         }
 
         // Blurt out the elements
-        if (samFileHeader.getMagicNumber().equals(BAMFileConstants.BAM_MAGIC_V2)) {
-            this.binaryCodec.writeUInt(bamRecord.getBAM2Flags());
+        if (magicNumber != null && magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
+            this.binaryCodec.writeUInt(alignment.getBAM2Flags());
         }
         this.binaryCodec.writeInt(blockSize);
         this.binaryCodec.writeInt(alignment.getReferenceIndex());
@@ -135,7 +135,7 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         this.binaryCodec.writeInt(alignment.getAlignmentStart() - 1);
         this.binaryCodec.writeUByte((short)(alignment.getReadNameLength() + 1));
         this.binaryCodec.writeUByte((short)alignment.getMappingQuality());
-        if (samFileHeader.getMagicNumber().equals(BAMFileConstants.BAM_MAGIC)) {
+        if (magicNumber == null || magicNumber != null && magicNumber.equals(BAMFileConstants.BAM_MAGIC)) {
             this.binaryCodec.writeUShort(indexBin);
             this.binaryCodec.writeUShort(cigarLength);
         } else {
@@ -196,7 +196,7 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
     @Override
     public SAMRecord decode() {
 
-        final String magicNumber = this.header.getMagicNumber();
+        final byte[] magicNumber = this.header.getMagicNumber();
 
         long bam2Flags;
         if (magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
