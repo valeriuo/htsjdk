@@ -44,6 +44,8 @@ public class BAMRecord extends SAMRecord {
      */
     private byte[] mRestOfBinaryData = null;
 
+    private long mBAM2Flags = 0;
+
     // Various lengths are stored, because they are in the fixed-length part of the BAMRecord, and it is
     // more efficient to remember them than decode the element they store the length of.
     // The length becomes invalid if the element is changed with a set() method.
@@ -84,6 +86,48 @@ public class BAMRecord extends SAMRecord {
                         final int insertSize,
                         final byte[] restOfData) {
         super(header);
+        setReferenceIndex(referenceID);
+        setAlignmentStart(coordinate);
+        mReadNameLength = readNameLength;
+        setMappingQuality(mappingQuality);
+        mCigarLength = cigarLen;
+        setFlags(flags);
+        mReadLength = readLen;
+        setMateReferenceIndex(mateReferenceID);
+        setMateAlignmentStart(mateCoordinate);
+        setInferredInsertSize(insertSize);
+        mRestOfBinaryData = restOfData;
+
+        // Set these to null in order to mark them as being candidates for lazy initialization.
+        // If this is not done, they will have non-null defaults.
+        super.setReadName(null);
+        super.setCigarString(null);
+        super.setReadBases(null);
+        super.setBaseQualities(null);
+
+        // Do this after the above because setCigarString will clear it.
+        setIndexingBin(indexingBin);
+
+        // Mark the binary block as being valid for writing back out to disk
+        mBinaryDataStale = false;
+    }
+
+    protected BAMRecord(final SAMFileHeader header,
+                        final long bam2Flags,
+                        final int referenceID,
+                        final int coordinate,
+                        final short readNameLength,
+                        final short mappingQuality,
+                        final int indexingBin,
+                        final int cigarLen,
+                        final int flags,
+                        final int readLen,
+                        final int mateReferenceID,
+                        final int mateCoordinate,
+                        final int insertSize,
+                        final byte[] restOfData) {
+        super(header);
+        setBAM2Flags(bam2Flags);
         setReferenceIndex(referenceID);
         setAlignmentStart(coordinate);
         mReadNameLength = readNameLength;
@@ -367,5 +411,13 @@ public class BAMRecord extends SAMRecord {
 
     private int qualsSize() {
         return mReadLength;
+    }
+
+    public long getBAM2Flags() {
+        return mBAM2Flags;
+    }
+
+    public void setBAM2Flags(long mBAM2Flags) {
+        this.mBAM2Flags = mBAM2Flags;
     }
 }

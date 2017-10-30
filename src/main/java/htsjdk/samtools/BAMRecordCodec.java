@@ -91,6 +91,9 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
      */
     @Override
     public void encode(final SAMRecord alignment) {
+        final BAMRecord bamRecord = (BAMRecord)alignment;
+        final SAMFileHeader samFileHeader = alignment.getHeader();
+
         // Compute block size, as it is the first element of the file representation of SAMRecord
         final int readLength = alignment.getReadLength();
 
@@ -123,14 +126,23 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         }
 
         // Blurt out the elements
+        if (samFileHeader.getMagicNumber().equals(BAMFileConstants.BAM_MAGIC_V2)) {
+            this.binaryCodec.writeUInt(bamRecord.getBAM2Flags());
+        }
         this.binaryCodec.writeInt(blockSize);
         this.binaryCodec.writeInt(alignment.getReferenceIndex());
         // 0-based!!
         this.binaryCodec.writeInt(alignment.getAlignmentStart() - 1);
         this.binaryCodec.writeUByte((short)(alignment.getReadNameLength() + 1));
         this.binaryCodec.writeUByte((short)alignment.getMappingQuality());
-        this.binaryCodec.writeUShort(indexBin);
-        this.binaryCodec.writeUShort(cigarLength);
+        if (samFileHeader.getMagicNumber().equals(BAMFileConstants.BAM_MAGIC)) {
+            this.binaryCodec.writeUShort(indexBin);
+            this.binaryCodec.writeUShort(cigarLength);
+        } else {
+            if (samFileHeader.getMagicNumber().equals(BAMFileConstants.BAM_MAGIC_V2)) {
+                this.binaryCodec.writeUInt(cigarLength);
+            }
+        }
         this.binaryCodec.writeUShort(alignment.getFlags());
         this.binaryCodec.writeInt(alignment.getReadLength());
         this.binaryCodec.writeInt(alignment.getMateReferenceIndex());
@@ -183,7 +195,23 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
      */
     @Override
     public SAMRecord decode() {
-        int recordLength = 0;
+
+        final String magicNumber = this.header.getMagicNumber();
+
+        long bam2Flags;
+        if (magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
+            try {
+                bam2Flags = this.binaryCodec.readUInt();
+            } catch (RuntimeEOFException e) {
+                return null;
+            }
+
+            if (bam2Flags != 0) {
+                throw new SAMFormatException("Invalid BAM2 flags: " + bam2Flags);
+            }
+        }
+
+        int recordLength;
         try {
             recordLength = this.binaryCodec.readInt();
         }
@@ -199,8 +227,16 @@ public class BAMRecordCodec implements SortingCollection.Codec<SAMRecord> {
         final int coordinate = this.binaryCodec.readInt() + 1;
         final short readNameLength = this.binaryCodec.readUByte();
         final short mappingQuality = this.binaryCodec.readUByte();
-        final int bin = this.binaryCodec.readUShort();
-        final int cigarLen = this.binaryCodec.readUShort();
+        int bin = 0;
+        int cigarLen = 0;
+        if (magicNumber.equals(BAMFileConstants.BAM_MAGIC)) {
+            bin = this.binaryCodec.readUShort();
+            cigarLen = this.binaryCodec.readUShort();
+        } else {
+            if (magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
+                cigarLen = Math.toIntExact(this.binaryCodec.readUInt());
+            }
+        }
         final int flags = this.binaryCodec.readUShort();
         final int readLen = this.binaryCodec.readInt();
         final int mateReferenceID = this.binaryCodec.readInt();
