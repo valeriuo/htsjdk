@@ -656,7 +656,7 @@ public class BAMFileReader extends SamReader.ReaderImplementation {
 
         final byte[] buffer = new byte[4];
         stream.readBytes(buffer);
-        if (!Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC) || !Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC_V2)) {
+        if (!Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC) && !Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC_V2)) {
             throw new IOException("Invalid BAM file header");
         }
 
