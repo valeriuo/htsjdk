@@ -661,7 +661,7 @@ public class BAMFileReader extends SamReader.ReaderImplementation {
         }
 
         long bam2HdrFlags = 0;
-        if (buffer.equals(BAMFileConstants.BAM_MAGIC_V2)) {
+        if (Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC_V2)) {
             bam2HdrFlags = stream.readUInt();
 
             if (bam2HdrFlags != 0) {

@@ -36,6 +36,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /**
  * Concrete implementation of SAMFileWriter for writing gzipped BAM files.
@@ -174,9 +175,8 @@ class BAMFileWriter extends SAMFileWriterImpl {
      */
     protected static void writeHeader(final BinaryCodec outputBinaryCodec, final SAMFileHeader samFileHeader, final String headerText) {
 
-        final byte[] magicNumber = samFileHeader.getMagicNumber();
-        if (magicNumber != null && magicNumber.equals(BAMFileConstants.BAM_MAGIC_V2)) {
-            outputBinaryCodec.writeBytes(magicNumber);
+        if (samFileHeader.getMagicNumber() != null && Arrays.equals(samFileHeader.getMagicNumber(), BAMFileConstants.BAM_MAGIC_V2)) {
+            outputBinaryCodec.writeBytes(samFileHeader.getMagicNumber());
             outputBinaryCodec.writeUInt(samFileHeader.getBam2HdrFlags());
         } else {
             outputBinaryCodec.writeBytes(BAMFileConstants.BAM_MAGIC);
