@@ -43,4 +43,10 @@ class BAMFileConstants {
      * BAM index file magic number.
      */
     static final byte[] BAM_INDEX_MAGIC = "BAI\1".getBytes();
+
+    /**
+     * SAM header BV tag values
+     */
+    static final String BV1 = "1";
+    static final String BV2 = "2";
 }

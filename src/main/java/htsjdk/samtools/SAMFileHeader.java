@@ -49,6 +49,7 @@ public class SAMFileHeader extends AbstractSAMHeaderRecord
     public static final String SORT_ORDER_TAG = "SO";
     public static final String GROUP_ORDER_TAG = "GO";
     public static final String CURRENT_VERSION = "1.5";
+    public static final String BAM_VERSION = "BV";
     public static final Set<String> ACCEPTABLE_VERSIONS = CollectionUtil.makeSet("1.0", "1.3", "1.4", "1.5");
 
     private SortOrder sortOrder = null;
@@ -59,7 +60,7 @@ public class SAMFileHeader extends AbstractSAMHeaderRecord
      * These tags are of known type, so don't need a type field in the text representation.
      */
     public static final Set<String> STANDARD_TAGS =
-            new HashSet<>(Arrays.asList(VERSION_TAG, SORT_ORDER_TAG, GROUP_ORDER_TAG));
+            new HashSet<>(Arrays.asList(VERSION_TAG, SORT_ORDER_TAG, GROUP_ORDER_TAG, BAM_VERSION));
 
     @Override
     Set<String> getStandardTags() {
@@ -298,6 +299,14 @@ public class SAMFileHeader extends AbstractSAMHeaderRecord
     public void setGroupOrder(final GroupOrder go) {
         groupOrder = go;
         super.setAttribute(GROUP_ORDER_TAG, go.name());
+    }
+
+    public String getBamVersion() {
+        return getAttribute(BAM_VERSION);
+    }
+
+    public void setBamVersion(String version) {
+        setAttribute(BAM_VERSION, version);
     }
 
 

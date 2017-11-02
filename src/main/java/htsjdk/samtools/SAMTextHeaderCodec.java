@@ -247,6 +247,13 @@ public class SAMTextHeaderCodec {
                     SAMValidationError.Type.HEADER_TAG_NON_CONFORMING_VALUE, null);
         }
 
+        final String bamVersion = parsedHeaderLine.getValue(SAMFileHeader.BAM_VERSION);
+        if (bamVersion != null && bamVersion.equals(BAMFileConstants.BV2)){
+            mFileHeader.setMagicNumber(BAMFileConstants.BAM_MAGIC_V2);
+        } else {
+            mFileHeader.setMagicNumber(BAMFileConstants.BAM_MAGIC);
+        }
+
         transferAttributes(mFileHeader, parsedHeaderLine.mKeyValuePairs);
     }
 

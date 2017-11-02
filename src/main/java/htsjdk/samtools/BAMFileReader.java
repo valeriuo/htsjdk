@@ -677,6 +677,11 @@ public class BAMFileReader extends SamReader.ReaderImplementation {
 
         samFileHeader.setMagicNumber(buffer);
         samFileHeader.setBam2HdrFlags(bam2HdrFlags);
+        final String samHeaderBamVersion = samFileHeader.getBamVersion();
+        if (Arrays.equals(buffer, BAMFileConstants.BAM_MAGIC_V2) &&
+                (samHeaderBamVersion == null || !samHeaderBamVersion.equals(BAMFileConstants.BV2))) {
+            samFileHeader.setBamVersion(BAMFileConstants.BV2);
+        }
 
         final int sequenceCount = stream.readInt();
         if (!samFileHeader.getSequenceDictionary().isEmpty()) {
